@@ -11,7 +11,7 @@ const PORT: &str = "8888";
 
 fn handle_client(mut stream: TcpStream) {
     let mut data = [0 as u8; 50]; // using 50 byte buffer
-    let mut resp = "OK";
+    let resp = "OK";
     while match stream.read(&mut data) {
         Ok(size) => {
             match size {
@@ -26,7 +26,7 @@ fn handle_client(mut stream: TcpStream) {
                 }
             }
         },
-        Err(e) => {
+        Err(_) => {
             println!("An error occurred, terminating connection with {}", stream.peer_addr().unwrap());
             stream.shutdown(Shutdown::Both).unwrap();
             false
