@@ -11,12 +11,22 @@ const PORT: &str = "8888";
 
 fn handle_client(mut stream: TcpStream) {
     let mut data = [0 as u8; 50]; // using 50 byte buffer
+    let mut resp = "OK";
     while match stream.read(&mut data) {
         Ok(size) => {
-            stream.write(&data[0..size]).unwrap();
-            true
+            match size {
+                0 => {
+                    // A successful read of length zero indicates there is no more data to be read
+                    println!("Client closed connection: {}", stream.peer_addr().unwrap());
+                    false
+                },
+                _ => {
+                    stream.write(resp.as_bytes()).unwrap();
+                    true
+                }
+            }
         },
-        Err(_) => {
+        Err(e) => {
             println!("An error occurred, terminating connection with {}", stream.peer_addr().unwrap());
             stream.shutdown(Shutdown::Both).unwrap();
             false

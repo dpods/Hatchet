@@ -41,13 +41,13 @@ fn main() {
             stream.write(msg).unwrap();
             println!("Sent Hello, awaiting reply...");
 
-            let mut data = [0 as u8; 6]; // using 6 byte buffer
+            let mut data = [0 as u8; 2]; // using 2 byte buffer for "OK" response
             match stream.read_exact(&mut data) {
                 Ok(_) => {
-                    if &data == msg {
+                    let text = from_utf8(&data).unwrap();
+                    if &data == "OK".as_bytes() {
                         println!("Reply is ok!");
                     } else {
-                        let text = from_utf8(&data).unwrap();
                         println!("Unexpected reply: {}", text);
                     }
                 },
@@ -60,5 +60,6 @@ fn main() {
             println!("Failed to connect: {}", e);
         }
     }
+
     println!("Terminated.");
 }
