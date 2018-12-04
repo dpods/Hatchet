@@ -1,0 +1,30 @@
+use std::io;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::prelude::*;
+
+#[derive(Deserialize)]
+pub struct Config {
+    host: String,
+    port: u16,
+    pub files: Vec<String>
+}
+
+impl Config {
+    pub fn new(filename: String) -> Result<Config, io::Error> {
+        let f = match File::open(filename) {
+            Ok(x) => x,
+            Err(e) => return Err(e)
+        };
+
+        // read file into a string
+        let mut buf_reader = BufReader::new(f);
+        let mut contents = String::new();
+        buf_reader.read_to_string(&mut contents)?;
+
+        // deserialize toml string to Config object
+        let config: Config = toml::from_str(&contents).unwrap();
+
+        Ok(config)
+    }
+}

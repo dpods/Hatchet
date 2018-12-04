@@ -7,7 +7,7 @@ use std::os::unix::fs::MetadataExt;
 use std::net::{TcpStream};
 use std::str::from_utf8;
 
-pub struct LogWatcher {
+pub struct Forwarder {
     stream: TcpStream,
     filename: String,
     inode: u64,
@@ -16,8 +16,8 @@ pub struct LogWatcher {
     finish: bool
 }
 
-impl LogWatcher {
-    pub fn register(stream: TcpStream, filename: String) -> Result<LogWatcher, io::Error> {
+impl Forwarder {
+    pub fn register(stream: TcpStream, filename: String) -> Result<Forwarder, io::Error> {
         let f = match File::open(filename.clone()) {
             Ok(x) => x,
             Err(e) => return Err(e)
@@ -33,7 +33,7 @@ impl LogWatcher {
 
         reader.seek(SeekFrom::Start(pos)).unwrap();
 
-        Ok(LogWatcher {
+        Ok(Forwarder {
             stream: stream,
             filename: filename,
             inode: metadata.ino(),
@@ -48,14 +48,17 @@ impl LogWatcher {
             let mut line = String::new();
             let resp = self.reader.read_line(&mut line);
             match resp {
+                Err(e) => {
+                    println!("Error: {}", e);
+                },
                 Ok(len) => {
                     if len > 0 {
-                        println!("new line detected");
+                        // New line detected
                         self.pos += len as u64;
                         self.reader.seek(SeekFrom::Start(self.pos)).unwrap();
                         self.stream.write(line.trim_end().as_bytes()).unwrap();
-                        println!("Sent line, awaiting reply...");
 
+                        // Sent log data to server, waiting on response
                         let mut data = [0 as u8; 2]; // using 2 byte buffer for "OK" response
                         match self.stream.read_exact(&mut data) {
                             Ok(_) => {
@@ -77,9 +80,6 @@ impl LogWatcher {
                             break;
                         }
                     }
-                },
-                Err(e) => {
-                    println!("Error: {}", e);
                 }
             }
         }

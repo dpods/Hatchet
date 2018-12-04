@@ -1,17 +1,27 @@
 #[macro_use]
 extern crate clap;
 
+#[macro_use]
+extern crate serde_derive;
+
+extern crate toml;
+
+mod config;
+mod forwarder;
+
 use std::net::{TcpStream};
-use std::io::{Read, Write};
-use std::str::from_utf8;
 use clap::{Arg, App};
-
-mod log_watcher;
-
-use log_watcher::LogWatcher;
+use std::process::{Child, Command, Stdio};
+use forwarder::Forwarder;
+use std::thread;
 
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8888";
+
+fn forward_file(file: String, stream: TcpStream) {
+    let mut forwarder = Forwarder::register(stream, file).unwrap();
+    forwarder.watch();
+}
 
 fn main() {
     let matches = App::new(format!("{} {}", crate_name!(), "client"))
@@ -35,19 +45,23 @@ fn main() {
 
     let host = matches.value_of("host").unwrap();
     let port = matches.value_of("port").unwrap();
-
-    let filename = String::from("/Users/davidglassanos/Sites/rust/kirby/kirby.log");
+    let config = config::Config::new(String::from("config.toml")).unwrap();
+    let filename = config.files[0].clone();
 
     // Connect to socket
     match TcpStream::connect(format!("{}:{}", host, port)) {
-        Ok(mut stream) => {
-            println!("Successfully connected to server at {}:{}", host, port);
-
-            let mut log_watcher = LogWatcher::register(stream, filename).unwrap();
-            log_watcher.watch();
-        },
         Err(e) => {
             println!("Failed to connect: {}", e);
+        },
+        Ok(stream) => {
+            println!("Successfully connected to server at {}:{}", host, port);
+
+            let handle = thread::spawn(move|| {
+                // connection succeeded
+                forward_file(filename, stream)
+            });
+
+            handle.join().unwrap();
         }
     }
 
