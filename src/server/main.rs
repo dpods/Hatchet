@@ -5,12 +5,13 @@ use std::thread;
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
 use clap::{Arg, App};
+use std::str::from_utf8;
 
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8888";
 
 fn handle_client(mut stream: TcpStream) {
-    let mut data = [0 as u8; 50]; // using 50 byte buffer
+    let mut data = [0 as u8; 256]; // using 256 byte buffer
     let resp = "OK";
     while match stream.read(&mut data) {
         Ok(size) => {
@@ -21,6 +22,9 @@ fn handle_client(mut stream: TcpStream) {
                     false
                 },
                 _ => {
+                    let text = from_utf8(&data[0..size]).unwrap();
+                    println!("Received line: {}", text);
+
                     stream.write(resp.as_bytes()).unwrap();
                     true
                 }

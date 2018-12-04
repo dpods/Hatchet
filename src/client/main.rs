@@ -6,6 +6,10 @@ use std::io::{Read, Write};
 use std::str::from_utf8;
 use clap::{Arg, App};
 
+mod log_watcher;
+
+use log_watcher::LogWatcher;
+
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8888";
 
@@ -32,29 +36,15 @@ fn main() {
     let host = matches.value_of("host").unwrap();
     let port = matches.value_of("port").unwrap();
 
+    let filename = String::from("/Users/davidglassanos/Sites/rust/kirby/kirby.log");
+
+    // Connect to socket
     match TcpStream::connect(format!("{}:{}", host, port)) {
         Ok(mut stream) => {
             println!("Successfully connected to server at {}:{}", host, port);
 
-            let msg = b"Hello!";
-
-            stream.write(msg).unwrap();
-            println!("Sent Hello, awaiting reply...");
-
-            let mut data = [0 as u8; 2]; // using 2 byte buffer for "OK" response
-            match stream.read_exact(&mut data) {
-                Ok(_) => {
-                    let text = from_utf8(&data).unwrap();
-                    if &data == "OK".as_bytes() {
-                        println!("Reply is ok!");
-                    } else {
-                        println!("Unexpected reply: {}", text);
-                    }
-                },
-                Err(e) => {
-                    println!("Failed to receive data: {}", e);
-                }
-            }
+            let mut log_watcher = LogWatcher::register(stream, filename).unwrap();
+            log_watcher.watch();
         },
         Err(e) => {
             println!("Failed to connect: {}", e);
