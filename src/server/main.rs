@@ -1,19 +1,36 @@
 #[macro_use]
 extern crate clap;
 
+mod archiver;
+
 use std::thread;
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
 use clap::{Arg, App};
 use std::str::from_utf8;
+use archiver::Archiver;
 
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8888";
 
 fn handle_client(mut stream: TcpStream) {
     let mut data = [0 as u8; 256]; // using 256 byte buffer
-    let resp = "OK";
+    let success = "OK";
+
+    let mut archiver = match Archiver::new() {
+        Err(e) => {
+            println!("Could not open archive file: {}", e);
+            return;
+        },
+        Ok(a) => a
+    };
+
     while match stream.read(&mut data) {
+        Err(_) => {
+            println!("An error occurred, terminating connection with {}", stream.peer_addr().unwrap());
+            stream.shutdown(Shutdown::Both).unwrap();
+            false
+        },
         Ok(size) => {
             match size {
                 0 => {
@@ -25,16 +42,13 @@ fn handle_client(mut stream: TcpStream) {
                     let text = from_utf8(&data[0..size]).unwrap();
                     println!("Received line: {}", text);
 
-                    stream.write(resp.as_bytes()).unwrap();
+                    archiver.archive(text);
+
+                    stream.write(success.as_bytes()).unwrap();
                     true
                 }
             }
         },
-        Err(_) => {
-            println!("An error occurred, terminating connection with {}", stream.peer_addr().unwrap());
-            stream.shutdown(Shutdown::Both).unwrap();
-            false
-        }
     } {}
 }
 
