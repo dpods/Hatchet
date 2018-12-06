@@ -5,16 +5,16 @@ use std::io::prelude::*;
 
 #[derive(Deserialize)]
 pub struct Config {
-    host: String,
-    port: u16,
+    pub host: String,
+    pub port: u16,
     pub files: Vec<String>
 }
 
 impl Config {
     pub fn new(filename: String) -> Result<Config, io::Error> {
         let f = match File::open(filename) {
-            Ok(x) => x,
-            Err(e) => return Err(e)
+            Err(e) => return Err(e),
+            Ok(x) => x
         };
 
         // read file into a string

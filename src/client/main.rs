@@ -1,22 +1,17 @@
 #[macro_use]
 extern crate clap;
-
 #[macro_use]
 extern crate serde_derive;
-
 extern crate toml;
 
 mod config;
 mod forwarder;
 
+use clap::{App};
 use std::net::{TcpStream};
-use clap::{Arg, App};
-use std::process::{Child, Command, Stdio};
-use forwarder::Forwarder;
 use std::thread;
-
-const HOST: &str = "0.0.0.0";
-const PORT: &str = "8888";
+use forwarder::Forwarder;
+use config::Config;
 
 fn forward_file(file: String, stream: TcpStream) {
     let mut forwarder = Forwarder::register(stream, file).unwrap();
@@ -26,30 +21,14 @@ fn forward_file(file: String, stream: TcpStream) {
 fn main() {
     let matches = App::new(format!("{} {}", crate_name!(), "client"))
         .version(crate_version!())
-        .about("TCP Server Client")
-        .arg(Arg::with_name("host")
-            .short("h")
-            .long("host")
-            .value_name("HOST")
-            .help("The IP of the host server")
-            .default_value(HOST)
-            .takes_value(true))
-        .arg(Arg::with_name("port")
-            .short("p")
-            .long("port")
-            .value_name("PORT")
-            .help("The port the server is listening on")
-            .default_value(PORT)
-            .takes_value(true))
-        .get_matches();
+        .about("TCP Server Client");
 
-    let host = matches.value_of("host").unwrap();
-    let port = matches.value_of("port").unwrap();
-    let config = config::Config::new(String::from("config.toml")).unwrap();
-    let mut children = vec![];
+    let config = Config::new(String::from("config.toml")).unwrap();
+
+    println!("{}:{}", config.host, config.port);
 
     // Connect to socket
-    let stream = match TcpStream::connect(format!("{}:{}", host, port)) {
+    let stream = match TcpStream::connect(format!("{}:{}", config.host, config.port)) {
         Err(e) => {
             println!("Failed to connect: {}", e);
             return;
@@ -57,23 +36,21 @@ fn main() {
         Ok(stream) => stream
     };
 
-    for file in config.files {
-        println!("Successfully connected to server at {}:{}", host, port);
+    println!("Successfully connected to server at {}:{}", config.host, config.port);
 
-        let stream_clone = stream.try_clone().expect("clone failed...");
+    let mut children = vec![];
+    for file in config.files {
+        let stream_clone = stream.try_clone().expect("Failed to clone socket");
 
         let handle = thread::spawn(move|| {
-            // connection succeeded
             forward_file(file, stream_clone)
         });
 
         children.push(handle);
     }
 
+    // Wait for each thread to finish.
     for child in children {
-        // Wait for the thread to finish. Returns a result.
         let _ = child.join();
     }
-
-    println!("Terminated.");
 }

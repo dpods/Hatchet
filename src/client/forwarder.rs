@@ -19,13 +19,13 @@ pub struct Forwarder {
 impl Forwarder {
     pub fn register(stream: TcpStream, filename: String) -> Result<Forwarder, io::Error> {
         let f = match File::open(filename.clone()) {
-            Ok(x) => x,
-            Err(e) => return Err(e)
+            Err(e) => return Err(e),
+            Ok(x) => x
         };
 
         let metadata = match f.metadata() {
-            Ok(x) => x,
-            Err(e) => return Err(e)
+            Err(e) => return Err(e),
+            Ok(x) => x
         };
 
         let mut reader = BufReader::new(f);
@@ -35,7 +35,7 @@ impl Forwarder {
 
         Ok(Forwarder {
             stream: stream,
-            filename: filename,
+            filename: filename.split('/').last().unwrap().to_string(),
             inode: metadata.ino(),
             pos: pos,
             reader: reader,
@@ -47,39 +47,43 @@ impl Forwarder {
         loop {
             let mut line = String::new();
             let resp = self.reader.read_line(&mut line);
-            match resp {
+            let len = match resp {
                 Err(e) => {
                     println!("Error: {}", e);
+                    continue;
                 },
-                Ok(len) => {
-                    if len > 0 {
-                        // New line detected
-                        self.pos += len as u64;
-                        self.reader.seek(SeekFrom::Start(self.pos)).unwrap();
-                        self.stream.write(line.trim_end().as_bytes()).unwrap();
+                Ok(len) => len
+            };
 
-                        // Sent log data to server, waiting on response
-                        let mut data = [0 as u8; 2]; // using 2 byte buffer for "OK" response
-                        match self.stream.read_exact(&mut data) {
-                            Ok(_) => {
-                                let text = from_utf8(&data).unwrap();
-                                if &data == "OK".as_bytes() {
-                                    println!("Reply is ok!");
-                                } else {
-                                    println!("Unexpected reply: {}", text);
-                                }
-                            },
-                            Err(e) => {
-                                println!("Failed to receive data: {}", e);
-                            }
-                        }
+            if len > 0 {
+                // New line detected
+                let source = format!("source={} ", self.filename);
+                line.insert_str(0, &source[..]);
 
-                        line.clear();
-                    } else {
-                        if self.finish {
-                            break;
+                self.pos += len as u64;
+                self.reader.seek(SeekFrom::Start(self.pos)).unwrap();
+                self.stream.write(line.trim_end().as_bytes()).unwrap();
+
+                // Sent log data to server, waiting on response
+                let mut data = [0 as u8; 2]; // using 2 byte buffer for "OK" response
+                match self.stream.read_exact(&mut data) {
+                    Ok(_) => {
+                        let text = from_utf8(&data).unwrap();
+                        if &data == "OK".as_bytes() {
+                            println!("Reply is ok!");
+                        } else {
+                            println!("Unexpected reply: {}", text);
                         }
+                    },
+                    Err(e) => {
+                        println!("Failed to receive data: {}", e);
                     }
+                }
+
+                line.clear();
+            } else {
+                if self.finish {
+                    break;
                 }
             }
         }
