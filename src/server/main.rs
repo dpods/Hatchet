@@ -14,7 +14,7 @@ const HOST: &str = "0.0.0.0";
 const PORT: &str = "8888";
 
 fn handle_client(mut stream: TcpStream) {
-    let mut data = [0 as u8; 256]; // using 256 byte buffer
+    let mut data = [0 as u8; 1024]; // using 1kb buffer
     let success = "OK";
 
     let mut archiver = match Archiver::new() {
