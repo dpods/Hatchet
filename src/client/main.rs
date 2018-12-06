@@ -46,23 +46,33 @@ fn main() {
     let host = matches.value_of("host").unwrap();
     let port = matches.value_of("port").unwrap();
     let config = config::Config::new(String::from("config.toml")).unwrap();
-    let filename = config.files[0].clone();
+    let mut children = vec![];
 
     // Connect to socket
-    match TcpStream::connect(format!("{}:{}", host, port)) {
+    let stream = match TcpStream::connect(format!("{}:{}", host, port)) {
         Err(e) => {
             println!("Failed to connect: {}", e);
+            return;
         },
-        Ok(stream) => {
-            println!("Successfully connected to server at {}:{}", host, port);
+        Ok(stream) => stream
+    };
 
-            let handle = thread::spawn(move|| {
-                // connection succeeded
-                forward_file(filename, stream)
-            });
+    for file in config.files {
+        println!("Successfully connected to server at {}:{}", host, port);
 
-            handle.join().unwrap();
-        }
+        let stream_clone = stream.try_clone().expect("clone failed...");
+
+        let handle = thread::spawn(move|| {
+            // connection succeeded
+            forward_file(file, stream_clone)
+        });
+
+        children.push(handle);
+    }
+
+    for child in children {
+        // Wait for the thread to finish. Returns a result.
+        let _ = child.join();
     }
 
     println!("Terminated.");
