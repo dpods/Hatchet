@@ -10,22 +10,27 @@ mod forwarder;
 use clap::{App};
 use std::net::{TcpStream};
 use std::thread;
+use std::sync::{Mutex, Arc};
 use forwarder::Forwarder;
 use config::Config;
 
-fn forward_file(file: String, stream: TcpStream) {
-    let mut forwarder = Forwarder::register(stream, file).unwrap();
+fn forward_file(file: String, stream: Arc<Mutex<TcpStream>>) {
+    let mut forwarder = match Forwarder::register(stream, file.clone()) {
+        Err(e) => {
+            eprintln!("failed forwarding file {}: {}", file.clone(), e);
+            return;
+        },
+        Ok(f) => f
+    };
     forwarder.watch();
 }
 
 fn main() {
-    let matches = App::new(format!("{} {}", crate_name!(), "client"))
+    let _matches = App::new(format!("{} {}", crate_name!(), "client"))
         .version(crate_version!())
         .about("TCP Server Client");
 
     let config = Config::new(String::from("config.toml")).unwrap();
-
-    println!("{}:{}", config.host, config.port);
 
     // Connect to socket
     let stream = match TcpStream::connect(format!("{}:{}", config.host, config.port)) {
@@ -33,14 +38,14 @@ fn main() {
             println!("Failed to connect: {}", e);
             return;
         },
-        Ok(stream) => stream
+        Ok(stream) => Arc::new(Mutex::new(stream))
     };
 
     println!("Successfully connected to server at {}:{}", config.host, config.port);
 
     let mut children = vec![];
     for file in config.files {
-        let stream_clone = stream.try_clone().expect("Failed to clone socket");
+        let stream_clone = Arc::clone(&stream);
 
         let handle = thread::spawn(move|| {
             forward_file(file, stream_clone)

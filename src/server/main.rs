@@ -4,6 +4,7 @@ extern crate clap;
 mod archiver;
 
 use std::thread;
+use std::sync::{Mutex, Arc};
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
 use clap::{Arg, App};
@@ -13,17 +14,9 @@ use archiver::Archiver;
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8888";
 
-fn handle_client(mut stream: TcpStream) {
+fn handle_client(mut stream: TcpStream, archiver: Arc<Mutex<Archiver>>) {
     let mut data = [0 as u8; 1024]; // using 1kb buffer
     let success = "OK";
-
-    let mut archiver = match Archiver::new() {
-        Err(e) => {
-            println!("Could not open archive file: {}", e);
-            return;
-        },
-        Ok(a) => a
-    };
 
     while match stream.read(&mut data) {
         Err(_) => {
@@ -42,6 +35,7 @@ fn handle_client(mut stream: TcpStream) {
                     let text = from_utf8(&data[0..size]).unwrap();
                     println!("Received line: {}", text);
 
+                    let mut archiver = archiver.lock().unwrap();
                     archiver.archive(text);
 
                     stream.write(success.as_bytes()).unwrap();
@@ -70,14 +64,23 @@ fn main() {
 
     println!("Server listening on port {}", port);
 
+    let archiver = match Archiver::new() {
+        Err(e) => {
+            println!("Could not open archive file: {}", e);
+            return;
+        },
+        Ok(a) => Arc::new(Mutex::new(a))
+    };
+
     // accept connections and process them, spawning a new thread for each one
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
                 println!("New connection: {}", stream.peer_addr().unwrap());
+                let archiver_clone = Arc::clone(&archiver);
                 thread::spawn(move|| {
                     // connection succeeded
-                    handle_client(stream)
+                    handle_client(stream, archiver_clone)
                 });
             }
             Err(e) => {

@@ -6,9 +6,10 @@ use std::fs::File;
 use std::os::unix::fs::MetadataExt;
 use std::net::{TcpStream};
 use std::str::from_utf8;
+use std::sync::{Mutex, Arc};
 
 pub struct Forwarder {
-    stream: TcpStream,
+    stream: Arc<Mutex<TcpStream>>,
     filename: String,
     inode: u64,
     pos: u64,
@@ -17,7 +18,7 @@ pub struct Forwarder {
 }
 
 impl Forwarder {
-    pub fn register(stream: TcpStream, filename: String) -> Result<Forwarder, io::Error> {
+    pub fn register(stream: Arc<Mutex<TcpStream>>, filename: String) -> Result<Forwarder, io::Error> {
         let f = match File::open(filename.clone()) {
             Err(e) => return Err(e),
             Ok(x) => x
@@ -62,11 +63,13 @@ impl Forwarder {
 
                 self.pos += len as u64;
                 self.reader.seek(SeekFrom::Start(self.pos)).unwrap();
-                self.stream.write(line.trim_end().as_bytes()).unwrap();
+
+                let mut stream = self.stream.lock().unwrap();
+                stream.write(line.trim_end().as_bytes()).unwrap();
 
                 // Sent log data to server, waiting on response
                 let mut data = [0 as u8; 2]; // using 2 byte buffer for "OK" response
-                match self.stream.read_exact(&mut data) {
+                match stream.read_exact(&mut data) {
                     Ok(_) => {
                         let text = from_utf8(&data).unwrap();
                         if &data == "OK".as_bytes() {
