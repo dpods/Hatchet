@@ -7,20 +7,20 @@ extern crate toml;
 mod config;
 mod forwarder;
 
-use clap::{App};
-use std::net::{TcpStream};
-use std::thread;
-use std::sync::{Mutex, Arc};
-use forwarder::Forwarder;
+use clap::App;
 use config::Config;
+use forwarder::Forwarder;
+use std::net::TcpStream;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 fn forward_file(file: String, stream: Arc<Mutex<TcpStream>>) {
     let mut forwarder = match Forwarder::register(stream, file.clone()) {
         Err(e) => {
             eprintln!("failed forwarding file {}: {}", file.clone(), e);
             return;
-        },
-        Ok(f) => f
+        }
+        Ok(f) => f,
     };
     forwarder.watch();
 }
@@ -37,19 +37,20 @@ fn main() {
         Err(e) => {
             println!("Failed to connect: {}", e);
             return;
-        },
-        Ok(stream) => Arc::new(Mutex::new(stream))
+        }
+        Ok(stream) => Arc::new(Mutex::new(stream)),
     };
 
-    println!("Successfully connected to server at {}:{}", config.host, config.port);
+    println!(
+        "Successfully connected to server at {}:{}",
+        config.host, config.port
+    );
 
     let mut children = vec![];
     for file in config.files {
         let stream_clone = Arc::clone(&stream);
 
-        let handle = thread::spawn(move|| {
-            forward_file(file, stream_clone)
-        });
+        let handle = thread::spawn(move || forward_file(file, stream_clone));
 
         children.push(handle);
     }

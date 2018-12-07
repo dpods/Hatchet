@@ -1,10 +1,10 @@
-use std::fs::OpenOptions;
 use std::fs::File;
+use std::fs::OpenOptions;
 use std::io;
 use std::io::prelude::*;
 
 pub struct Archiver {
-    file: File
+    file: File,
 }
 
 impl Archiver {
@@ -13,14 +13,13 @@ impl Archiver {
             .create(true)
             .write(true)
             .append(true)
-            .open("./archive.log") {
+            .open("./archive.log")
+        {
             Err(e) => return Err(e),
-            Ok(x) => x
+            Ok(x) => x,
         };
 
-        Ok(Archiver {
-            file: file
-        })
+        Ok(Archiver { file: file })
     }
 
     pub fn archive(&mut self, line: &str) {
