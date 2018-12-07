@@ -76,9 +76,8 @@ impl Forwarder {
                 match stream.read_exact(&mut data) {
                     Ok(_) => {
                         let text = from_utf8(&data).unwrap();
-                        if &data == "OK".as_bytes() {
-                            println!("Reply is ok!");
-                        } else {
+
+                        if text != "OK" {
                             println!("Unexpected reply: {}", text);
                         }
                     }

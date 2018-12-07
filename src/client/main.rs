@@ -13,12 +13,13 @@ use forwarder::Forwarder;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::process::exit;
 
 fn forward_file(file: String, stream: Arc<Mutex<TcpStream>>) {
     let mut forwarder = match Forwarder::register(stream, file.clone()) {
         Err(e) => {
             eprintln!("failed forwarding file {}: {}", file.clone(), e);
-            return;
+            exit(1);
         }
         Ok(f) => f,
     };
@@ -36,7 +37,7 @@ fn main() {
     let stream = match TcpStream::connect(format!("{}:{}", config.host, config.port)) {
         Err(e) => {
             println!("Failed to connect: {}", e);
-            return;
+            exit(1);
         }
         Ok(stream) => Arc::new(Mutex::new(stream)),
     };

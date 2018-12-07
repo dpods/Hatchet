@@ -1,7 +1,9 @@
 #[macro_use]
 extern crate clap;
+extern crate hyper;
 
 mod archiver;
+mod webserver;
 
 use archiver::Archiver;
 use clap::{App, Arg};
@@ -10,11 +12,12 @@ use std::net::{Shutdown, TcpListener, TcpStream};
 use std::str::from_utf8;
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::process::exit;
 
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8888";
 
-fn handle_client(mut stream: TcpStream, archiver: Arc<Mutex<Archiver>>) {
+fn handle_logserver_client(mut stream: TcpStream, archiver: Arc<Mutex<Archiver>>) {
     let mut data = [0 as u8; 1024]; // using 1kb buffer
     let success = "OK";
 
@@ -49,6 +52,48 @@ fn handle_client(mut stream: TcpStream, archiver: Arc<Mutex<Archiver>>) {
     } {}
 }
 
+
+fn start_logserver(port: &str) {
+    let listener = TcpListener::bind(format!("{}:{}", HOST, port)).unwrap();
+
+    println!("Server listening on port {}", port);
+
+    let archiver_mutex = match Archiver::new() {
+        Err(e) => {
+            println!("Could not open archive file: {}", e);
+            exit(1);
+        }
+        Ok(a) => a,
+    };
+
+    // accept connections and process them, spawning a new thread for each one
+    for stream in listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                println!("New connection: {}", stream.peer_addr().unwrap());
+                let archiver_clone = Arc::clone(&archiver_mutex);
+                thread::spawn(move || {
+                    // connection succeeded
+                    handle_logserver_client(stream, archiver_clone)
+                });
+            }
+            Err(e) => {
+                println!("Could not listen on new connection: {}", e);
+                exit(1);
+            }
+        }
+    }
+
+    // close the socket server
+    drop(listener);
+}
+
+fn start_webserver() {
+    thread::spawn(move || {
+        webserver::run();
+    });
+}
+
 fn main() {
     let matches = App::new(format!("{} {}", crate_name!(), "server"))
         .version(crate_version!())
@@ -64,36 +109,7 @@ fn main() {
         ).get_matches();
 
     let port = matches.value_of("port").unwrap();
-    let listener = TcpListener::bind(format!("{}:{}", HOST, port)).unwrap();
 
-    println!("Server listening on port {}", port);
-
-    let archiver = match Archiver::new() {
-        Err(e) => {
-            println!("Could not open archive file: {}", e);
-            return;
-        }
-        Ok(a) => Arc::new(Mutex::new(a)),
-    };
-
-    // accept connections and process them, spawning a new thread for each one
-    for stream in listener.incoming() {
-        match stream {
-            Ok(stream) => {
-                println!("New connection: {}", stream.peer_addr().unwrap());
-                let archiver_clone = Arc::clone(&archiver);
-                thread::spawn(move || {
-                    // connection succeeded
-                    handle_client(stream, archiver_clone)
-                });
-            }
-            Err(e) => {
-                println!("Error: {}", e);
-                /* connection failed */
-            }
-        }
-    }
-
-    // close the socket server
-    drop(listener);
+    start_webserver();
+    start_logserver(port);
 }
