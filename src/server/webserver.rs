@@ -14,14 +14,16 @@ static NOTFOUND: &[u8] = b"Not Found";
 static INDEX: &str = "src/public/index.html";
 static APP: &str = "src/public/js/app.js";
 
-pub fn run() {
-    let addr = "127.0.0.1:3000".parse().unwrap();
+const HOST: &str = "0.0.0.0";
+
+pub fn run(port: u16) {
+    let addr = format!("{}:{}", HOST, port).parse().unwrap();
 
     let server = Server::bind(&addr)
         .serve(|| service_fn(response_examples))
         .map_err(|e| eprintln!("server error: {}", e));
 
-    println!("Listening on http://{}", addr);
+    println!("WebServer listening on port {}", port);
 
     hyper::rt::run(server);
 }
