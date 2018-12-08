@@ -1,0 +1,29 @@
+{
+  "name": "tracket",
+  "version": "0.1.0",
+  "description": "JS Frontend for Tracket Log Manager",
+  "main": "app.js",
+  "scripts": {
+    "test": "test",
+    "build": "webpack --config webpack.config.js"
+  },
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "style-loader": "^0.23.1",
+    "vue": "^2.5.18",
+    "vue-loader": "^15.4.2",
+    "vue-router": "^3.0.2",
+    "vue-template-compiler": "^2.5.18",
+    "vuex": "^3.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.2.0",
+    "@babel/preset-env": "^7.2.0",
+    "babel-loader": "^8.0.4",
+    "css-loader": "^2.0.0",
+    "hard-source-webpack-plugin": "^0.12.0",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2"
+  }
+}

@@ -2,9 +2,10 @@ extern crate futures;
 extern crate hyper;
 extern crate tokio_fs;
 extern crate tokio_io;
+extern crate regex;
 
 use self::futures::{future, Future};
-
+use self::regex::Regex;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 
@@ -12,7 +13,11 @@ use std::io;
 
 static NOTFOUND: &[u8] = b"Not Found";
 static INDEX: &str = "src/public/index.html";
-static APP: &str = "src/public/js/app.js";
+static APP: &str = "src/public/js/dist/app.js";
+static APP_MAIN: &str = "src/public/js/dist/main.app.js";
+static APP_VENDORS: &str = "src/public/js/dist/vendors.app.js";
+
+static ASSET_APP_CSS: &str  = "src/public/assets/css/app.css";
 
 const HOST: &str = "0.0.0.0";
 
@@ -31,15 +36,27 @@ pub fn run(port: u16) {
 type ResponseFuture = Box<Future<Item = Response<Body>, Error = io::Error> + Send>;
 
 fn response_examples(req: Request<Body>) -> ResponseFuture {
-    match (req.method(), req.uri().path()) {
-        (&Method::GET, "/") | (&Method::GET, "/index.html") => simple_file_send(INDEX),
-        (&Method::GET, "/app.js") => simple_file_send(APP),
-        _ => Box::new(future::ok(
-            Response::builder()
-                .status(StatusCode::NOT_FOUND)
-                .body(Body::empty())
-                .unwrap(),
-        )),
+    println!("requested: {} {}", req.method(), req.uri().path());
+
+    let re = Regex::new(r"^/asset").unwrap();
+
+    if re.is_match(req.uri().path()) {
+        let full_path = format!("src/public/{}", req.uri().path());
+        simple_file_send(&*full_path)
+    } else {
+        match (req.method(), req.uri().path()) {
+            (&Method::GET, "/") | (&Method::GET, "/index.html") => simple_file_send(INDEX),
+            (&Method::GET, "/js/dist/app.js") => simple_file_send(APP),
+            (&Method::GET, "/js/dist/main.app.js") => simple_file_send(APP_MAIN),
+            (&Method::GET, "/js/dist/vendors.app.js") => simple_file_send(APP_VENDORS),
+            (&Method::GET, "/assets/css/app.css") => simple_file_send(ASSET_APP_CSS),
+            _ => Box::new(future::ok(
+                Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(Body::empty())
+                    .unwrap(),
+            )),
+        }
     }
 }
 

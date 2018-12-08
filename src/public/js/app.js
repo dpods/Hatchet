@@ -1,3 +1,20 @@
-var app = "This is a javascript file";
+import Vue from 'vue';
+import App from './components/App.vue';
+import TopNav from './components/TopNav.vue';
+import MainContent from './components/MainContent.vue';
+import SearchBox from './components/SearchBox.vue';
+import SearchBox2 from './components/SearchBox2.vue';
+import Chart from './components/Chart.vue';
+import SearchResults from './components/SearchResults.vue';
 
-console.log(app);
+Vue.component('app', App);
+Vue.component('top-nav', TopNav);
+Vue.component('main-content', MainContent);
+Vue.component('search-box', SearchBox);
+Vue.component('search-box2', SearchBox2);
+Vue.component('chart', Chart);
+Vue.component('search-results', SearchResults);
+
+var app = new Vue({
+    el: '#app',
+});
