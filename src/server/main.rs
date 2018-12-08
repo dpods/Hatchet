@@ -5,13 +5,13 @@ extern crate serde_derive;
 extern crate hyper;
 
 mod archiver;
-mod webserver;
 mod logserver;
 mod server_config;
+mod webserver;
 
-use clap::{App};
-use std::thread;
+use clap::App;
 use server_config::ServerConfig;
+use std::thread;
 
 fn main() {
     let _matches = App::new(format!("{} {}", crate_name!(), "server"))

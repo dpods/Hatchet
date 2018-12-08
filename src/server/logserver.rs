@@ -1,10 +1,10 @@
-use std::str::from_utf8;
-use std::sync::{Arc, Mutex};
+use archiver::Archiver;
 use std::io::{Read, Write};
 use std::net::{Shutdown, TcpListener, TcpStream};
-use std::thread;
 use std::process::exit;
-use archiver::Archiver;
+use std::str::from_utf8;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 const HOST: &str = "0.0.0.0";
 

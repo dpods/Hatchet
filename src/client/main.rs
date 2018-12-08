@@ -4,16 +4,16 @@ extern crate clap;
 extern crate serde_derive;
 extern crate toml;
 
-mod config;
+mod client_config;
 mod forwarder;
 
 use clap::App;
-use config::Config;
+use client_config::ClientConfig;
 use forwarder::Forwarder;
 use std::net::TcpStream;
+use std::process::exit;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::process::exit;
 
 fn forward_file(file: String, stream: Arc<Mutex<TcpStream>>) {
     let mut forwarder = match Forwarder::register(stream, file.clone()) {
@@ -31,7 +31,7 @@ fn main() {
         .version(crate_version!())
         .about("TCP Server Client");
 
-    let config = Config::new(String::from("config.toml")).unwrap();
+    let config = ClientConfig::new(String::from("config.toml")).unwrap();
 
     // Connect to socket
     let stream = match TcpStream::connect(format!("{}:{}", config.host, config.port)) {
