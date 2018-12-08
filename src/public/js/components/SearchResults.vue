@@ -1,7 +1,7 @@
 <template>
     <div class="row">
         <div class="col-md-12">
-            <div class="card card-border-color card-border-color-primary">
+            <div class="card">
                 <div class="card-body">
                     <table class="table table-striped table-hover table-fw-widget" id="table2">
                         <thead>
