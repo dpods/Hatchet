@@ -10883,7 +10883,7 @@ canvas {
 .be-top-header .be-navbar-header .navbar-brand {
   line-height: 60px;
   height: 60px;
-  width: 142px;
+  width: 60px;
   background-image: url("../img/logo.png");
   background-repeat: no-repeat;
   background-position: 20px center;
@@ -10894,8 +10894,11 @@ canvas {
 
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .be-top-header .be-navbar-header .navbar-brand {
-    background-image: url("../img/logo-xx.png");
-    background-size: 102px 27px;
+    background-image: url("../img/logo.png");
+    background-size: 27px 27px;
+    padding-left: 55px;
+    font-size: 1.5em;
+    font-family: 'Maven Pro', sans-serif;
   }
 }
 
@@ -12635,7 +12638,7 @@ canvas {
 
 .be-offcanvas-menu .be-left-sidebar .menu-logo {
   height: 60px;
-  width: 150px;
+  width: 60px;
   background-image: url("../img/logo.png");
   background-repeat: no-repeat;
   background-position: 20px center;
@@ -16308,7 +16311,7 @@ li.L9 {
 .invoice-logo {
   height: 54px;
   min-width: 204px;
-  background-image: url("../img/logo-xx.png");
+  background-image: url("../img/logo.png");
   background-repeat: no-repeat;
   background-position: 0;
 }
@@ -16316,7 +16319,7 @@ li.L9 {
 @media (max-width: 991.98px) {
   .invoice-logo {
     height: 27px;
-    width: 102px;
+    width: 27px;
     background-image: url("../img/logo.png");
   }
 }
@@ -16332,7 +16335,7 @@ li.L9 {
 @media print {
   .invoice-logo {
     height: 27px !important;
-    width: 102px !important;
+    width: 27px !important;
     background-image: url("../img/logo.png") !important;
     display: block !important;
     background-repeat: no-repeat !important;
