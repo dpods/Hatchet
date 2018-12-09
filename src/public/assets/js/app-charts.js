@@ -10,8 +10,8 @@ var App = (function () {
     //Bar Chart 2
     function widget_barchart2(){
 
-      var color1 = App.color.success;
-      var color2 = tinycolor( App.color.success ).lighten( 22 ).toString();
+      var color1 = App.color.primary;
+      var color2 = tinycolor( App.color.primary ).lighten( 22 ).toString();
 
     	var plot_statistics = $.plot($("#bar-chart2"), [
     	    {
