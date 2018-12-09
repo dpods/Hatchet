@@ -1,4 +1,8 @@
 import Vue from 'vue';
+
+import VueNativeSock from 'vue-native-websocket';
+Vue.use(VueNativeSock, 'ws://0.0.0.0:3333', { format: 'json' });
+
 import App from './components/App.vue';
 import TopNav from './components/TopNav.vue';
 import MainContent from './components/MainContent.vue';

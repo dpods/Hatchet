@@ -5,7 +5,7 @@
                 <div class="form-group row">
                     <div class="col-12 col-sm-12 col-lg-12">
                         <div class="input-group">
-                            <input class="form-control" id="inputText3" type="text">
+                            <input class="form-control" id="inputText3" type="text" v-model="query">
                             <div class="input-group-append be-addon">
                                 <button class="btn btn-secondary dropdown-toggle px-3" type="button" data-toggle="dropdown">Last 60 Minutes</button>
                                 <div class="dropdown-menu">
@@ -17,7 +17,7 @@
                                 </div>
                             </div>
                             <div class="input-group-append">
-                                <button class="btn btn-primary px-3" type="button">SEARCH</button>
+                                <button class="btn btn-primary px-3" type="button" @click="clickButton">SEARCH</button>
                             </div>
                         </div>
                     </div>
@@ -29,7 +29,23 @@
 
 <script>
     export default {
-        name: "SearchBox"
+        name: "SearchBox",
+        data() {
+            return {
+                query: ''
+            }
+        },
+        methods: {
+            clickButton() {
+                this.$socket.sendObj({query: this.query})
+            }
+        },
+        created() {
+            this.$options.sockets.onmessage = (data) => {
+                console.log('received websocket response:');
+                console.log(data);
+            }
+        }
     }
 </script>
 

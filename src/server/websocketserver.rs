@@ -9,7 +9,10 @@ pub fn run(port: u16) {
 
     listen(addr, |out| {
         move |msg| {
-            out.send(msg)
+            println!("Received message: {}", msg);
+
+            out.send("log data 1").unwrap();
+            out.send("log data 2, plus other log data")
         }
     }).unwrap();
 }
