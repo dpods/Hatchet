@@ -7,6 +7,7 @@ use std::io::BufReader;
 pub struct ServerConfig {
     pub logserver_port: u16,
     pub webserver_port: u16,
+    pub websocketserver_port: u16,
 }
 
 impl ServerConfig {

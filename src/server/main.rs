@@ -3,11 +3,13 @@ extern crate clap;
 #[macro_use]
 extern crate serde_derive;
 extern crate hyper;
+extern crate ws;
 
 mod archiver;
 mod logserver;
 mod server_config;
 mod webserver;
+mod websocketserver;
 
 use clap::App;
 use server_config::ServerConfig;
@@ -21,6 +23,7 @@ fn main() {
     let config = ServerConfig::new(String::from("server.toml")).unwrap();
     let logserver_port = config.logserver_port;
     let webserver_port = config.webserver_port;
+    let websocketserver_port = config.websocketserver_port;
 
     let mut children = vec![];
 
@@ -31,6 +34,11 @@ fn main() {
 
     let handle = thread::spawn(move || {
         webserver::run(webserver_port);
+    });
+    children.push(handle);
+
+    let handle = thread::spawn(move || {
+        websocketserver::run(websocketserver_port);
     });
     children.push(handle);
 
