@@ -6,6 +6,7 @@ extern crate regex;
 
 use self::futures::{future, Future};
 use self::regex::Regex;
+use std::path::Path;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 
@@ -13,16 +14,9 @@ use std::io;
 
 static NOTFOUND: &[u8] = b"Not Found";
 static INDEX: &str = "src/public/index.html";
-static APP: &str = "src/public/js/dist/app.js";
-static APP_MAIN: &str = "src/public/js/dist/main.app.js";
-static APP_VENDORS: &str = "src/public/js/dist/vendors.app.js";
-
-static ASSET_APP_CSS: &str  = "src/public/assets/css/app.css";
-
-const HOST: &str = "0.0.0.0";
 
 pub fn run(port: u16) {
-    let addr = format!("{}:{}", HOST, port).parse().unwrap();
+    let addr = format!("127.0.0.1:{}", port).parse().unwrap();
 
     let server = Server::bind(&addr)
         .serve(|| service_fn(response_examples))
@@ -38,25 +32,23 @@ type ResponseFuture = Box<Future<Item = Response<Body>, Error = io::Error> + Sen
 fn response_examples(req: Request<Body>) -> ResponseFuture {
     println!("requested: {} {}", req.method(), req.uri().path());
 
-    let re = Regex::new(r"^/asset").unwrap();
+    match (req.method(), req.uri().path()) {
+        (&Method::GET, "/") => simple_file_send(INDEX),
+        _ => {
+            let full_path = format!("src/public/{}", req.uri().path());
 
-    if re.is_match(req.uri().path()) {
-        let full_path = format!("src/public/{}", req.uri().path());
-        simple_file_send(&*full_path)
-    } else {
-        match (req.method(), req.uri().path()) {
-            (&Method::GET, "/") | (&Method::GET, "/index.html") => simple_file_send(INDEX),
-            (&Method::GET, "/js/dist/app.js") => simple_file_send(APP),
-            (&Method::GET, "/js/dist/main.app.js") => simple_file_send(APP_MAIN),
-            (&Method::GET, "/js/dist/vendors.app.js") => simple_file_send(APP_VENDORS),
-            (&Method::GET, "/assets/css/app.css") => simple_file_send(ASSET_APP_CSS),
-            _ => Box::new(future::ok(
-                Response::builder()
-                    .status(StatusCode::NOT_FOUND)
-                    .body(Body::empty())
-                    .unwrap(),
-            )),
-        }
+            // TODO: This should be refactored as it's unsafe but for now it works to continue development
+            if Path::new(&*full_path).exists() {
+                simple_file_send(&*full_path)
+            } else {
+                Box::new(future::ok(
+                    Response::builder()
+                        .status(StatusCode::NOT_FOUND)
+                        .body(Body::empty())
+                        .unwrap(),
+                ))
+            }
+        },
     }
 }
 
