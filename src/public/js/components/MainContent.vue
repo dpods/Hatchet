@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="main-content container-fluid">
-            <search-box2></search-box2>
+            <search-box></search-box>
             <chart></chart>
             <search-results></search-results>
         </div>

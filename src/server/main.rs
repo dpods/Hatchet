@@ -4,6 +4,7 @@ extern crate clap;
 extern crate serde_derive;
 extern crate hyper;
 extern crate ws;
+extern crate regex;
 
 mod archiver;
 mod logserver;

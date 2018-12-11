@@ -1,11 +1,9 @@
 extern crate futures;
 extern crate hyper;
-extern crate regex;
 extern crate tokio_fs;
 extern crate tokio_io;
 
 use self::futures::{future, Future};
-use self::regex::Regex;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use std::path::Path;
