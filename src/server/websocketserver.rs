@@ -2,6 +2,7 @@ use ws::{listen, Message};
 use regex::Regex;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use stopwatch::{Stopwatch};
 use std::str;
 
 const HOST: &str = "0.0.0.0";
@@ -20,6 +21,7 @@ pub fn run(port: u16) {
 
     listen(addr, |out| {
         move |msg: Message| {
+            let sw = Stopwatch::start_new();
             let msg_copy = msg.clone();
             let json = msg_copy.as_text().unwrap();
             let q: Query = serde_json::from_str(json).unwrap();
@@ -66,7 +68,7 @@ pub fn run(port: u16) {
             }
 
             // Let the client know we're done searching
-            out.send("done")
+            out.send(format!("done|{}", sw.elapsed_ms()))
         }
     }).unwrap();
 }

@@ -5,6 +5,7 @@ extern crate serde_derive;
 extern crate hyper;
 extern crate ws;
 extern crate regex;
+extern crate stopwatch;
 
 mod archiver;
 mod logserver;

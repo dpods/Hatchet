@@ -25,6 +25,9 @@
                             </div>
                         </div>
                     </form>
+                    <div v-if="results.length > 0">
+                        Found {{ results.length }} results <span v-if="duration">in {{ durationForHumans }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -38,8 +41,21 @@
         name: "SearchBox",
         data() {
             return {
-                query: ''
+                query: '',
+                duration: null
             }
+        },
+        computed: {
+            results() {
+                return this.$store.state.search.results
+            },
+            durationForHumans() {
+                if (this.duration < 1000) {
+                    return this.duration + ' milliseconds';
+                } else {
+                    return (this.duration / 1000) + ' seconds';
+                }
+            },
         },
         methods: {
             clickButton() {
@@ -47,7 +63,6 @@
                 this.$store.dispatch('clearResults');
 
                 console.log('start');
-                console.log(new Date());
                 this.$socket.sendObj({query: this.query, from: '', to: ''})
             }
         },
@@ -55,9 +70,9 @@
             this.$options.sockets.onmessage = (data) => {
                 console.log(data);
 
-                if (data.data === 'done') {
-                    console.log('end');
-                    console.log(new Date());
+                if (data.data.substring(0, 4) === 'done') {
+                    let parts = data.data.split('|');
+                    this.duration = parts[1];
                     return;
                 }
 
