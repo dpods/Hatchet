@@ -15,12 +15,12 @@ pub struct Archiver {
 
 impl Archiver {
     pub fn new(path: &String) -> Result<Arc<Mutex<Archiver>>, io::Error> {
+        // First, create archive directory if it does not exist
+        fs::create_dir_all(path.clone())?;
+
         let filepath = path.clone();
         let filename = Archiver::get_filename();
         let file = Archiver::new_file(&filepath, &filename);
-
-        // First, create archive directory if it does not exist
-        fs::create_dir_all(filepath.clone())?;
 
         let archiver = Archiver {
             filepath: filepath,
@@ -39,7 +39,7 @@ impl Archiver {
             .write(true)
             .append(true)
             .open(format!("{}/{}", filepath, filename)) {
-                Err(_e) => panic!("Couldn't open file for archiving"),
+                Err(e) => panic!("Couldn't open file for archiving: {}", e),
                 Ok(x) => x,
             }
     }
