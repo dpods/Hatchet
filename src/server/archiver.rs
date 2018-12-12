@@ -19,8 +19,8 @@ impl Archiver {
         fs::create_dir_all(path.clone())?;
 
         let filepath = path.clone();
-        let filename = Archiver::get_filename();
-        let file = Archiver::new_file(&filepath, &filename);
+        let filename = Archiver::current_filename();
+        let file = Archiver::open_file(&filepath, &filename);
 
         let archiver = Archiver {
             filepath: filepath,
@@ -31,7 +31,7 @@ impl Archiver {
         Ok(Arc::new(Mutex::new(archiver)))
     }
 
-    pub fn new_file(filepath: &String, filename: &String) -> File {
+    pub fn open_file(filepath: &String, filename: &String) -> File {
         // The open file for archiving and return an arc mutex to it since multiple threads
         // will be writing to this file
         match OpenOptions::new()
@@ -44,17 +44,17 @@ impl Archiver {
             }
     }
 
-    pub fn get_filename() -> String {
+    pub fn current_filename() -> String {
         let dt = Local::now();
         format!("{}{}{}.log", dt.year(), dt.month(), dt.day())
     }
 
     pub fn archive(&mut self, line: &str) {
-        let new_filename = Archiver::get_filename();
+        let current_filename = Archiver::current_filename();
         let file_exists = Path::new(&self.get_fullpath()).exists();
 
-        if new_filename != self.filename || !file_exists {
-            self.file = Archiver::new_file(&self.filepath, &new_filename);
+        if !file_exists || current_filename != self.filename {
+            self.file = Archiver::open_file(&self.filepath, &current_filename);
         }
 
         if let Err(e) = writeln!(self.file, "{}", line) {

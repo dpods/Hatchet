@@ -42,7 +42,7 @@ fn main() {
         websocketserver::run(config_clone);
     });
 
-    logserver_handle.join();
-    webserver_handle.join();
-    websocketserver_handle.join();
+    logserver_handle.join().expect("Couldn't join on LogServer thread");
+    webserver_handle.join().expect("Couldn't join on WebServer thread");
+    websocketserver_handle.join().expect("Couldn't join on WebsocketServer thread");
 }
