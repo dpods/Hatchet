@@ -9,13 +9,15 @@
                                 <div class="input-group">
                                     <input class="form-control" id="inputText3" type="text" v-model="query">
                                     <div class="input-group-append be-addon">
-                                        <button class="btn btn-secondary dropdown-toggle px-3" type="button" data-toggle="dropdown">Last 60 Minutes</button>
+                                        <button class="btn btn-secondary dropdown-toggle px-3" type="button" data-toggle="dropdown">
+                                            Today
+                                        </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <a class="dropdown-item" href="#">Something else here</a>
+                                            <a class="dropdown-item" href="#">Yesterday</a>
+                                            <a class="dropdown-item" href="#">Last 3 days</a>
+                                            <a class="dropdown-item" href="#">Last 7 days</a>
                                             <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Separated link</a>
+                                            <a class="dropdown-item" href="#">Custom Date Range</a>
                                         </div>
                                     </div>
                                     <div class="input-group-append">

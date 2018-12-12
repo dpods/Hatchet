@@ -6,6 +6,8 @@ use stopwatch::{Stopwatch};
 use std::str;
 use std::sync::Arc;
 use server_config::ServerConfig;
+use std::fs;
+use std::path::Path;
 
 const HOST: &str = "0.0.0.0";
 
@@ -18,6 +20,7 @@ struct Query {
 
 pub fn run(config: Arc<ServerConfig>) {
     let addr = format!("{}:{}", HOST, config.websocketserver_port);
+    let archive_path = Path::new(&config.archive_path);
 
     println!("WebsocketServer listening on port {}", config.websocketserver_port);
 
@@ -29,19 +32,17 @@ pub fn run(config: Arc<ServerConfig>) {
             let q: Query = serde_json::from_str(json).unwrap();
             let re = Regex::new(&q.query).unwrap();
 
-            let filenames = vec![
-                "./20181209.log".to_string(),
-                "./20181208.log".to_string(),
-                "./20181207.log".to_string(),
-                "./20181210.log".to_string(),
-                "./20181206.log".to_string(),
-            ];
-
-
             const BUFFER_SIZE: usize = 1024 * 16;
 
-            for filename in filenames.iter() {
-                let mut file = try!(File::open(filename));
+            for entry in fs::read_dir(archive_path)? {
+                let entry = entry?;
+                let path = entry.path();
+
+                if path.is_dir() {
+                    continue;
+                }
+
+                let mut file = try!(File::open(path));
                 let mut reader = BufReader::with_capacity(BUFFER_SIZE, file);
 
                 loop {
