@@ -7,20 +7,21 @@ use self::futures::{future, Future};
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use std::path::Path;
-
 use std::io;
+use std::sync::Arc;
+use server_config::ServerConfig;
 
 static NOTFOUND: &[u8] = b"Not Found";
 static INDEX: &str = "src/public/index.html";
 
-pub fn run(port: u16) {
-    let addr = format!("127.0.0.1:{}", port).parse().unwrap();
+pub fn run(config: Arc<ServerConfig>) {
+    let addr = format!("127.0.0.1:{}", config.webserver_port).parse().unwrap();
 
     let server = Server::bind(&addr)
         .serve(|| service_fn(response_examples))
         .map_err(|e| eprintln!("server error: {}", e));
 
-    println!("WebServer listening on port {}", port);
+    println!("WebServer listening on port {}", config.webserver_port);
 
     hyper::rt::run(server);
 }

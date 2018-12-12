@@ -8,6 +8,7 @@ pub struct ServerConfig {
     pub logserver_port: u16,
     pub webserver_port: u16,
     pub websocketserver_port: u16,
+    pub archive_path: String
 }
 
 impl ServerConfig {

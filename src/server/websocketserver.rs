@@ -4,6 +4,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use stopwatch::{Stopwatch};
 use std::str;
+use std::sync::Arc;
+use server_config::ServerConfig;
 
 const HOST: &str = "0.0.0.0";
 
@@ -14,10 +16,10 @@ struct Query {
     to: String,
 }
 
-pub fn run(port: u16) {
-    let addr = format!("{}:{}", HOST, port);
+pub fn run(config: Arc<ServerConfig>) {
+    let addr = format!("{}:{}", HOST, config.websocketserver_port);
 
-    println!("WebsocketServer listening on port {}", port);
+    println!("WebsocketServer listening on port {}", config.websocketserver_port);
 
     listen(addr, |out| {
         move |msg: Message| {
@@ -28,11 +30,11 @@ pub fn run(port: u16) {
             let re = Regex::new(&q.query).unwrap();
 
             let filenames = vec![
-                "./archive.log".to_string(),
-                "./archive2.log".to_string(),
-                "./archive3.log".to_string(),
-                "./access.log".to_string(),
-                "./error.log".to_string(),
+                "./20181209.log".to_string(),
+                "./20181208.log".to_string(),
+                "./20181207.log".to_string(),
+                "./20181210.log".to_string(),
+                "./20181206.log".to_string(),
             ];
 
 

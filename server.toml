@@ -1,3 +1,4 @@
 logserver_port = 8888
 webserver_port = 3000
 websocketserver_port = 3333
+archive_path = './archives'

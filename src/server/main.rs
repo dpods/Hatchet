@@ -6,6 +6,7 @@ extern crate hyper;
 extern crate ws;
 extern crate regex;
 extern crate stopwatch;
+extern crate chrono;
 
 mod archiver;
 mod logserver;
@@ -16,6 +17,7 @@ mod websocketserver;
 use clap::App;
 use server_config::ServerConfig;
 use std::thread;
+use std::sync::Arc;
 
 fn main() {
     let _matches = App::new(format!("{} {}", crate_name!(), "server"))
@@ -23,29 +25,24 @@ fn main() {
         .about("TCP Server");
 
     let config = ServerConfig::new(String::from("server.toml")).unwrap();
-    let logserver_port = config.logserver_port;
-    let webserver_port = config.webserver_port;
-    let websocketserver_port = config.websocketserver_port;
+    let config = Arc::new(config);
 
-    let mut children = vec![];
-
-    let handle = thread::spawn(move || {
-        logserver::run(logserver_port);
+    let config_clone = config.clone();
+    let logserver_handle = thread::spawn(move || {
+        logserver::run(config_clone);
     });
-    children.push(handle);
 
-    let handle = thread::spawn(move || {
-        webserver::run(webserver_port);
+    let config_clone = config.clone();
+    let webserver_handle = thread::spawn(move || {
+        webserver::run(config_clone);
     });
-    children.push(handle);
 
-    let handle = thread::spawn(move || {
-        websocketserver::run(websocketserver_port);
+    let config_clone = config.clone();
+    let websocketserver_handle = thread::spawn(move || {
+        websocketserver::run(config_clone);
     });
-    children.push(handle);
 
-    // Wait for each thread to finish.
-    for child in children {
-        let _ = child.join();
-    }
+    logserver_handle.join();
+    webserver_handle.join();
+    websocketserver_handle.join();
 }

@@ -5,6 +5,7 @@ use std::process::exit;
 use std::str::from_utf8;
 use std::sync::{Arc, Mutex};
 use std::thread;
+use server_config::ServerConfig;
 
 const HOST: &str = "0.0.0.0";
 
@@ -43,12 +44,12 @@ fn handle_logserver_client(mut stream: TcpStream, archiver: Arc<Mutex<Archiver>>
     } {}
 }
 
-pub fn run(port: u16) {
-    let listener = TcpListener::bind(format!("{}:{}", HOST, port)).unwrap();
+pub fn run(config: Arc<ServerConfig>) {
+    let listener = TcpListener::bind(format!("{}:{}", HOST, config.logserver_port)).unwrap();
 
-    println!("LogServer listening on port {}", port);
+    println!("LogServer listening on port {}", config.logserver_port);
 
-    let archiver_mutex = match Archiver::new() {
+    let archiver_mutex = match Archiver::new(&config.archive_path) {
         Err(e) => {
             println!("Could not open archive file: {}", e);
             exit(1);

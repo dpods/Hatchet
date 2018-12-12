@@ -19,7 +19,7 @@ fn forward_file(file: String, stream: Arc<Mutex<TcpStream>>) {
     let mut forwarder = match Forwarder::register(stream, file.clone()) {
         Err(e) => {
             eprintln!("failed forwarding file {}: {}", file.clone(), e);
-            exit(1);
+            return;
         }
         Ok(f) => f,
     };
