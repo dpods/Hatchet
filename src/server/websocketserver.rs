@@ -2,7 +2,7 @@ use ws::{listen, Message};
 use regex::Regex;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::time::{Duration, SystemTime};
+use std::str;
 
 const HOST: &str = "0.0.0.0";
 
@@ -25,7 +25,7 @@ pub fn run(port: u16) {
             let q: Query = serde_json::from_str(json).unwrap();
             let re = Regex::new(&q.query).unwrap();
 
-            let files = vec![
+            let filenames = vec![
                 "./archive.log".to_string(),
                 "./archive2.log".to_string(),
                 "./archive3.log".to_string(),
@@ -34,21 +34,38 @@ pub fn run(port: u16) {
             ];
 
 
-            for file in files.iter() {
-                let now = SystemTime::now();
-                println!("opening file {}", file);
-                let f = File::open(file).unwrap();
-                println!("{}", now.elapsed().unwrap().as_secs());
-                println!("searching file {}", file);
-                for line in BufReader::new(f).lines() {
-                    let l = line.unwrap();
-                    if re.is_match(&l) {
-                        out.send(l).unwrap();
-                    }
+            const BUFFER_SIZE: usize = 1024 * 16;
+
+            for filename in filenames.iter() {
+                let mut file = try!(File::open(filename));
+                let mut reader = BufReader::with_capacity(BUFFER_SIZE, file);
+
+                loop {
+                    let length = {
+                        let buffer = try!(reader.fill_buf());
+                        let mut line = str::from_utf8(&buffer).unwrap();
+
+                        // Search entire 16mb buffer for regex match
+                        if re.is_match(&line) {
+                            // If we have a match, search each individual line for a match and
+                            // output to client
+                            for line in line.lines() {
+                                if re.is_match(&line) {
+                                    out.send(line).unwrap();
+                                }
+                            }
+                        }
+
+                        buffer.len()
+                    };
+
+                    if length == 0 { break; }
+
+                    reader.consume(length);
                 }
-                println!("{}", now.elapsed().unwrap().as_secs());
             }
 
+            // Let the client know we're done searching
             out.send("done")
         }
     }).unwrap();
