@@ -7,6 +7,7 @@ extern crate ws;
 extern crate regex;
 extern crate stopwatch;
 extern crate chrono;
+extern crate walkdir;
 
 mod archiver;
 mod logserver;

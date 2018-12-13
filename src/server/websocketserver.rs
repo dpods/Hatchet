@@ -8,6 +8,7 @@ use std::sync::Arc;
 use server_config::ServerConfig;
 use std::fs;
 use std::path::Path;
+use walkdir::WalkDir;
 
 const HOST: &str = "0.0.0.0";
 
@@ -34,15 +35,16 @@ pub fn run(config: Arc<ServerConfig>) {
 
             const BUFFER_SIZE: usize = 1024 * 16;
 
-            for entry in fs::read_dir(archive_path)? {
-                let entry = entry?;
-                let path = entry.path();
+            for entry in WalkDir::new(&archive_path) {
+                let entry = entry.unwrap();
 
-                if path.is_dir() {
+                if entry.path().is_dir() {
                     continue;
                 }
 
-                let mut file = try!(File::open(path));
+                println!("{}", entry.path().display());
+
+                let mut file = try!(File::open(entry.path()));
                 let mut reader = BufReader::with_capacity(BUFFER_SIZE, file);
 
                 loop {
