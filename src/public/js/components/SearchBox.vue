@@ -27,8 +27,8 @@
                             </div>
                         </div>
                     </form>
-                    <div v-if="results.length > 0">
-                        Found {{ results.length }} results <span v-if="duration">in {{ durationForHumans }}</span>
+                    <div v-if="duration">
+                        Found {{ results.length }} results in {{ durationForHumans }}
                     </div>
                 </div>
             </div>
@@ -37,19 +37,19 @@
 </template>
 
 <script>
-    import da from "../../assets/lib/moment.js/src/locale/da";
-
     export default {
         name: "SearchBox",
         data() {
             return {
                 query: '',
-                duration: null
             }
         },
         computed: {
             results() {
                 return this.$store.state.search.results
+            },
+            duration() {
+                return this.$store.state.search.duration
             },
             durationForHumans() {
                 if (this.duration < 1000) {
@@ -61,10 +61,10 @@
         },
         methods: {
             clickButton() {
+                this.$store.dispatch('setDuration', null);
                 this.$store.dispatch('setQuery', this.query);
                 this.$store.dispatch('clearResults');
 
-                console.log('start');
                 this.$socket.sendObj({query: this.query, from: '', to: ''})
             }
         },
@@ -74,7 +74,7 @@
 
                 if (data.data.substring(0, 4) === 'done') {
                     let parts = data.data.split('|');
-                    this.duration = parts[1];
+                    this.$store.dispatch('setDuration', parts[1]);
                     return;
                 }
 

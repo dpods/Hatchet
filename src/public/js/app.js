@@ -24,7 +24,8 @@ const store = new Vuex.Store({
     state: {
         search: {
             query: '',
-            results: []
+            results: [],
+            duration: null
         }
     },
     mutations: {
@@ -37,6 +38,9 @@ const store = new Vuex.Store({
         addResult(state, result) {
             state.search.results.push(result)
         },
+        setDuration(state, duration) {
+            state.search.duration = duration
+        }
     },
     actions: {
         setQuery(context, query) {
@@ -48,6 +52,9 @@ const store = new Vuex.Store({
         addResult(context, result) {
             context.commit('addResult', result)
         },
+        setDuration(context, duration) {
+            context.commit('setDuration', duration)
+        }
     }
 })
 
