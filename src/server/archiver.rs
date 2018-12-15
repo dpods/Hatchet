@@ -3,7 +3,7 @@ use std::io;
 use std::io::prelude::*;
 use std::sync::{Arc, Mutex};
 use chrono::prelude::*;
-use std::fs::{self, DirBuilder};
+use std::fs::DirBuilder;
 
 const FILENAME: &str = "archive.log";
 
@@ -60,8 +60,6 @@ impl Archiver {
     }
 
     pub fn archive(&mut self, line: &str) {
-        println!("{}", self.current_directory());
-
         let path = self.current_directory();
 
         DirBuilder::new()

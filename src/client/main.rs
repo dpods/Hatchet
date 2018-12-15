@@ -3,6 +3,7 @@ extern crate clap;
 #[macro_use]
 extern crate serde_derive;
 extern crate toml;
+extern crate regex;
 
 mod client_config;
 mod forwarder;

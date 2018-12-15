@@ -6,7 +6,6 @@ use stopwatch::{Stopwatch};
 use std::str;
 use std::sync::Arc;
 use server_config::ServerConfig;
-use std::fs;
 use std::path::Path;
 use walkdir::WalkDir;
 

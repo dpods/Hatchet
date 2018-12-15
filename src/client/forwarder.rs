@@ -7,6 +7,7 @@ use std::net::TcpStream;
 use std::os::unix::fs::MetadataExt;
 use std::str::from_utf8;
 use std::sync::{Arc, Mutex};
+use regex::Regex;
 
 pub struct Forwarder {
     stream_mutex: Arc<Mutex<TcpStream>>,
@@ -61,6 +62,20 @@ impl Forwarder {
 
             if len > 0 {
                 // New line detected
+                let line_copy = line.clone();
+                let re = Regex::new(r"(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2})").unwrap();
+                let re2 = Regex::new(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})").unwrap();
+
+                for cap in re.captures_iter(&line_copy[..]) {
+                    let source = format!("datetime=\"{}\" ", &cap[1]);
+                    line.insert_str(0, &source[..]);
+                }
+
+                for cap in re2.captures_iter(&line_copy[..]) {
+                    let source = format!("datetime=\"{}\" ", &cap[1]);
+                    line.insert_str(0, &source[..]);
+                }
+
                 let source = format!("source={} ", self.filename);
                 line.insert_str(0, &source[..]);
 
