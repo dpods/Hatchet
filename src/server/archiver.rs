@@ -24,20 +24,20 @@ impl Archiver {
         Ok(Arc::new(Mutex::new(archiver)))
     }
 
-    fn current_year(&self) -> i32 {
-        self.utc.year()
+    fn current_year(&self) -> String {
+        self.utc.format("%y").to_string()
     }
 
-    fn current_month(&self) -> u32 {
-        self.utc.month()
+    fn current_month(&self) -> String {
+        self.utc.format("%m").to_string()
     }
 
-    fn current_day(&self) -> u32{
-        self.utc.day()
+    fn current_day(&self) -> String {
+        self.utc.format("%d").to_string()
     }
 
-    fn current_hour(&self) -> u32 {
-        self.utc.hour()
+    fn current_hour(&self) -> String {
+        self.utc.format("%H").to_string()
     }
 
     fn current_directory(&self) -> String {

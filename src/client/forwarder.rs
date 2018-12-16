@@ -72,7 +72,7 @@ impl Forwarder {
                 }
 
                 for cap in re2.captures_iter(&line_copy[..]) {
-                    let source = format!("datetime=\"{}\" ", &cap[1]);
+                    let source = format!("datetime=\"{} ", &cap[1]);
                     line.insert_str(0, &source[..]);
                 }
 

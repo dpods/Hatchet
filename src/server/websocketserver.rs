@@ -7,7 +7,7 @@ use std::str;
 use std::sync::Arc;
 use server_config::ServerConfig;
 use std::path::Path;
-use walkdir::WalkDir;
+use pathfinder::find_paths;
 
 const HOST: &str = "0.0.0.0";
 
@@ -34,16 +34,18 @@ pub fn run(config: Arc<ServerConfig>) {
 
             const BUFFER_SIZE: usize = 1024 * 16;
 
-            for entry in WalkDir::new(&archive_path) {
-                let entry = entry.unwrap();
+            let paths = find_paths(q.from, q.to);
 
-                if entry.path().is_dir() {
+            for path in paths {
+                let path_str = format!("{}/{}/archive.log", archive_path.to_str().unwrap(), path);
+
+                let path = Path::new(&path_str);
+
+                if !path.exists() {
                     continue;
                 }
 
-                println!("{}", entry.path().display());
-
-                let mut file = try!(File::open(entry.path()));
+                let mut file = try!(File::open(path_str.clone()));
                 let mut reader = BufReader::with_capacity(BUFFER_SIZE, file);
 
                 loop {

@@ -10,12 +10,12 @@
                                     <input class="form-control" id="inputText3" type="text" v-model="query">
                                     <div class="input-group-append be-addon">
                                         <button class="btn btn-secondary dropdown-toggle px-3" type="button" data-toggle="dropdown">
-                                            Today
+                                            {{ display_range }}
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="#">Yesterday</a>
-                                            <a class="dropdown-item" href="#">Last 3 days</a>
-                                            <a class="dropdown-item" href="#">Last 7 days</a>
+                                            <a class="dropdown-item" @click="display_range = 'Yesterday'">Yesterday</a>
+                                            <a class="dropdown-item" @click="display_range = 'Last 3 Days'">Last 3 days</a>
+                                            <a class="dropdown-item" @click="display_range = 'Last 7 Days'">Last 7 days</a>
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item" href="#">Custom Date Range</a>
                                         </div>
@@ -37,11 +37,14 @@
 </template>
 
 <script>
+    import moment from 'moment';
+
     export default {
         name: "SearchBox",
         data() {
             return {
                 query: '',
+                display_range: 'Today'
             }
         },
         computed: {
@@ -65,7 +68,33 @@
                 this.$store.dispatch('setQuery', this.query);
                 this.$store.dispatch('clearResults');
 
-                this.$socket.sendObj({query: this.query, from: '', to: ''})
+                let range = this.getRange();
+
+                console.log({query: this.query, from: range.from, to: range.to});
+                this.$socket.sendObj({query: this.query, from: range.from, to: range.to});
+            },
+            getRange() {
+                // Default to Today
+                let from = moment().startOf('day');
+                let to = moment().endOf('day');
+
+                if (this.display_range == 'Yesterday') {
+                    from = moment().subtract(1, 'days').startOf('day');
+                    to = moment().subtract(1, 'days').endOf('day');
+                }
+
+                if (this.display_range == 'Last 3 Days') {
+                    from = moment().subtract(3, 'days').startOf('day');
+                }
+
+                if (this.display_range == 'Last 7 Days') {
+                    from = moment().subtract(7, 'days').startOf('day');
+                }
+
+                return {
+                    from: from.format('YYYY/M/D/H'),
+                    to: to.format('YYYY/M/D/H')
+                };
             }
         },
         created() {

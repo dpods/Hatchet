@@ -14,6 +14,7 @@ mod logserver;
 mod server_config;
 mod webserver;
 mod websocketserver;
+mod pathfinder;
 
 use clap::App;
 use server_config::ServerConfig;
