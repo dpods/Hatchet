@@ -21,8 +21,8 @@ pub fn find_paths(from: String, to: String) -> Vec<String> {
         .and_hms(to_dirs[3], 0, 0);
 
     while from_dt.format("%Y/%m/%d/%H").to_string() != to_dt.format("%Y/%m/%d/%H").to_string() {
-        from_dt = from_dt + Duration::hours(1);
         paths.push(from_dt.format("%Y/%m/%d/%H").to_string());
+        from_dt = from_dt + Duration::hours(1);
     }
 
     paths.push(from_dt.format("%Y/%m/%d/%H").to_string());
