@@ -3,58 +3,59 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
-                    <form>
-                        <div class="form-group row">
-                            <div class="col-12 col-sm-12 col-lg-12">
-                                <div class="input-group">
-                                    <input class="form-control" id="inputText3" type="text" v-model="query">
-                                    <div class="input-group-append be-addon">
-                                        <button class="btn btn-secondary dropdown-toggle px-3" type="button" data-toggle="dropdown">
-                                            {{ displayRange }}
-                                        </button>
-                                        <div class="dropdown-menu">
-                                            <a class="dropdown-item" @click="range = 'today'">Today</a>
-                                            <a class="dropdown-item" @click="range = 'yesterday'">Yesterday</a>
-                                            <a class="dropdown-item" @click="range = 'last_3_days'">Last 3 days</a>
-                                            <a class="dropdown-item" @click="range = 'last_7_days'">Last 7 days</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" @click="showCustomDateRange">Custom Date Range</a>
-                                        </div>
+                    <div class="form-group row">
+                        <div class="col-12 col-sm-12 col-lg-12">
+                            <div class="input-group">
+                                <input class="form-control" id="inputText3" type="text" v-model="query">
+                                <div class="input-group-append be-addon">
+                                    <button class="btn btn-secondary dropdown-toggle px-3" type="button" data-toggle="dropdown">
+                                        {{ displayRange }}
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" @click="range = 'today'">Today</a>
+                                        <a class="dropdown-item" @click="range = 'yesterday'">Yesterday</a>
+                                        <a class="dropdown-item" @click="range = 'last_3_days'">Last 3 days</a>
+                                        <a class="dropdown-item" @click="range = 'last_7_days'">Last 7 days</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" @click="showCustomDateRange">Custom Date Range</a>
                                     </div>
-                                    <div class="input-group-append">
-                                        <button class="btn btn-primary px-3" type="button" @click="clickButton">SEARCH</button>
-                                    </div>
+                                </div>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary px-3" type="button" @click="clickButton">SEARCH</button>
                                 </div>
                             </div>
                         </div>
-                        <div v-if="range == 'custom'" class="form-group row">
-                            <label class="col-12 col-lg-9"></label>
-                            <div class="col-12 col-sm-8 col-lg-3 pt1">
-                                <div class="input-group mb-3">
-                                    <input class="form-control date datetimepicker-from"
-                                           type="text"
+                    </div>
+                    <div v-if="range == 'custom'" class="form-group row">
+                        <div class="col-12 col-sm-12 col-lg-12">
+                            <form class="form-inline float-right">
+                                <div class="input-group mb-2 mr-sm-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">From</div>
+                                    </div>
+                                    <input type="text"
+                                           class="form-control date datetimepicker-from"
+                                           id="custom-from"
                                            placeholder="Select A Date"
                                            data-min-view="2"
                                            data-date-format="yyyy-mm-dd"
                                            ref="custom_range_from">
-                                    <span class="input-group-append">
-                                        <span class="input-group-text range-from">From</span>
-                                    </span>
                                 </div>
-                                <div class="input-group mb-3">
-                                    <input class="form-control date datetimepicker-to"
-                                           type="text"
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">To</div>
+                                    </div>
+                                    <input type="text"
+                                           class="form-control date datetimepicker-to"
+                                           id="custom-to"
                                            placeholder="Select A Date"
                                            data-min-view="2"
                                            data-date-format="yyyy-mm-dd"
                                            ref="custom_range_to">
-                                    <span class="input-group-append">
-                                        <span class="input-group-text range-to">To</span>
-                                    </span>
                                 </div>
-                            </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
                     <div v-if="duration">
                         Found {{ results.length }} results in {{ durationForHumans }}
                     </div>
@@ -146,7 +147,6 @@
                 }
 
                 if (this.range == 'custom') {
-                    debugger;
                     from = moment(this.$refs.custom_range_from.value).startOf('day');
                     to = moment(this.$refs.custom_range_to.value).endOf('day');
                 }
